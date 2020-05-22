@@ -3,6 +3,7 @@
 
 	var/list/epochs = list(
 		//"Stone Age (?-3000 B.C.)" = 0,
+		"Chad Mode" = 0,
 		"Bronze Age (500 B.C.-400 A.D.)" = 0,
 		//"Dark Ages (400-700)" = 0,
 		"Middle Ages (700-1450)" = 0,
@@ -36,6 +37,7 @@
 		map.save_awards()
 		if (config.allowedgamemodes == "TDM")
 			epochs = list(
+				"Chad Mode" = 0,
 				//Stone Age (?-3000 B.C.)" = 0,
 				"Bronze Age (500 B.C.-400 A.D.)" = 0,
 				//"Dark Ages (400-700)" = 0,
@@ -54,13 +56,18 @@
 				"Civilization 13 (Colony & Pioneers)" = 0,
 				"Civilization 13 (Prison Camps)" = 15,
 				"Civilization 13 (Others)" = 0,)
+		else if (config.allowedgamemodes == "BR")
+			ready = FALSE
+			processes.python.execute("mapswap.py", "BATTLEROYALE_2")
+			return
 		ready = FALSE
 		vote.initiate_vote("epoch", "EpochSwap Process", TRUE, list(src, "swap"))
 
 /process/epochswap/proc/is_ready()
 	. = FALSE
-
-	if (ready)
+	if (config.allowedgamemodes == "BR")
+		. = FALSE
+	else if (ready)
 		if (admin_triggered)
 			. = TRUE
 		// round will end soon (tm)
@@ -104,6 +111,7 @@
 				MAP_HOSTAGES = 0,
 				MAP_ARAB_TOWN = 0,
 				MAP_ARAB_TOWN_2 = 0,
+				MAP_BATTLEROYALE_2 = 10,
 			)
 		if (epoch == "Cold War Era (1958-1984)")
 	// 1969 - TDM
@@ -159,6 +167,11 @@
 				MAP_SIEGE = 0,
 				MAP_GLADIATORS = 0,
 			)
+		if (epoch == "Chad Mode")
+	// chad mode group for TDM
+			maps = list(
+				MAP_JUNGLE_OF_THE_CHADS = 0,
+			)
 		if (epoch == "Middle Ages (700-1450)")
 	//	1013 - TDM
 			maps = list(
@@ -203,7 +216,7 @@
 				MAP_TRIBES = 12,
 				MAP_HUNT = 0,
 				MAP_LITTLE_CREEK = 10,
-				MAP_FOUR_KINDGOMS = 16
+//				MAP_FOUR_KINDGOMS = 16
 			)
 
 		spawn(10)
@@ -212,8 +225,9 @@
 
 /process/mapswap/proc/is_ready()
 	. = FALSE
-
-	if (ready)
+	if (config.allowedgamemodes == "BR")
+		. = FALSE
+	else if (ready)
 		if (admin_triggered)
 			. = TRUE
 		// round will end soon (tm)
@@ -270,7 +284,7 @@
 	ticker.delay_end = FALSE
 	ticker.pregame_timeleft = 10
 	if (vote.voted_gamemode == "Random")
-		vote.voted_gamemode = pick("Classic (Stone Age Start)", "Auto-Research Mode", "Resource-Based Research", "Bronze Age (No Research)","Medieval (No Research)","Imperial Age (No Research)", "Industrial Age (No Research)", "Early Modern Age (No Research)", "WW2 Age (No Research)", "Modern Age (No Research)",  "Chad Mode", "Chad Mode +")
+		vote.voted_gamemode = pick("Classic (Stone Age Start)", "Auto-Research Mode", "Resource-Based Research", "Bronze Age (No Research)","Medieval (No Research)","Imperial Age (No Research)", "Industrial Age (No Research)", "Early Modern Age (No Research)", "WW2 Age (No Research)", "Modern Age (No Research)")
 
 	map.gamemode = vote.voted_gamemode
 	if (vote.voted_gamemode == "Classic (Stone Age Start)")
