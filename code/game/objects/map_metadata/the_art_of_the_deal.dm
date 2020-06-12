@@ -7,7 +7,7 @@
 	is_singlefaction = TRUE
 	no_winner ="The fighting is still going."
 	songs = list(
-		"Fortunate Son:1" = 'sound/music/fortunate_son.ogg',)
+		"Woke Up This Morning:1" = 'sound/music/woke_up_this_morning.ogg',)
 	faction_organization = list(
 		CIVILIAN)
 
@@ -26,20 +26,42 @@
 	faction2 = PIRATES
 	gamemode = "Negotiations"
 	scores = list(
-		"Reddington Arms" = 0,
-		"Bluford Stock and Bonds" = 0,
-		"Greene Traders Co-ops" = 0,
+		"Rednikov Industries" = 0,
+		"Giovanni Blu Stocks" = 0,
+		"MacGreene Traders" = 0,
 		"Goldstein Solutions" = 0,
 		"Police" = 0,)
 	required_players = 6
+	var/list/delivery_locations = list()
+	var/list/delivery_orders = list()
+
+/obj/map_metadata/proc/assign_precursors()
+	var/list/possibilities1 = list("verdine crystals","indigon crystals","galdonium crystals")
+	var/list/picked = list()
+	assign_precursors["Rednikov Industries"] = pick(possibilities1)
+	picked += assign_precursors["Rednikov Industries"]
+	possibilities1 = list("crimsonite crystals","verdine crystals","galdonium crystals")
+	possibilities1 -= picked
+	assign_precursors["Giovanni Blu Stocks"] = pick(possibilities1)
+	picked += assign_precursors["Giovanni Blu Stocks"]
+	possibilities1 = list("crimsonite crystals","indigon crystals","galdonium crystals")
+	possibilities1 -= picked
+	if ("galdonium crystals" in possibilities1)
+		assign_precursors["MacGreene Traders"] = "galdonium crystals"
+	else
+		assign_precursors["MacGreene Traders"] = pick(possibilities1)
+	picked += assign_precursors["MacGreene Traders"]
+	possibilities1 = list("crimsonite crystals","indigon crystals","verdine crystals")
+	possibilities1 -= picked
+	assign_precursors["Goldstein Solutions"] = pick(possibilities1)
 
 /obj/map_metadata/art_of_the_deal/New()
 	..()
 	spawn(3000)
 		score()
-	var/newnamea = list("Reddington Arms" = list(230,230,230,null,0,"sun","#7F0000","#7F7F7F",0,0))
-	var/newnameb = list("Bluford Stock and Bonds" = list(230,230,230,null,0,"sun","#00007F","#7F7F7F",0,0))
-	var/newnamec = list("Greene Traders Co-ops" = list(230,230,230,null,0,"sun","#007F00","#7F7F7F",0,0))
+	var/newnamea = list("Rednikov Industries" = list(230,230,230,null,0,"sun","#7F0000","#7F7F7F",0,0))
+	var/newnameb = list("Giovanni Blu Stocks" = list(230,230,230,null,0,"sun","#00007F","#7F7F7F",0,0))
+	var/newnamec = list("MacGreene Traders" = list(230,230,230,null,0,"sun","#007F00","#7F7F7F",0,0))
 	var/newnamed = list("Goldstein Solutions" = list(230,230,230,null,0,"sun","#E5E500","#7F7F7F",0,0))
 	var/newnamee = list("Police" = list(230,230,230,null,0,"star","#E5E500","#00007F",0,0))
 	var/newnamef = list("Paramedics" = list(230,230,230,null,0,"cross","#7F0000","#FFFFFF",0,0))
@@ -49,8 +71,55 @@
 	custom_civs += newnamed
 	custom_civs += newnamee
 	custom_civs += newnamef
-	spawn(15000)
-		spawn_disks(TRUE)
+//	spawn(15000)
+//		spawn_disks(TRUE)
+	spawn(100)
+		refill_marketplace(TRUE)
+		assign_precursors()
+	spawn(150)
+		assign_delivery_zones()
+		send_buy_orders()
+/obj/map_metadata/art_of_the_deal/proc/assign_delivery_zones()
+	for(var/turf/floor/delivery/D in turfs)
+		var/list/tlist = list(list(D.name,D.x,D.y,D.get_coded_loc()))
+		delivery_locations += tlist
+/obj/map_metadata/art_of_the_deal/proc/send_buy_orders()
+	for(var/i in list("mail@greene.ug","mail@rednikov.ug","mail@goldstein.ug","mail@blu.ug"))
+		var/list/tloc = pick(delivery_locations)
+		var/nr = pick(3,7)
+		var/comps = ""
+		switch(i)
+			if ("mail@greene.ug")
+				comps = pick("GBSA-1994 chip","RDKV S-445 chip","GS-IC-M3 chip")
+			if ("mail@rednikov.ug")
+				comps = pick("GBSA-1994 chip","McGT S5R1 chip","GS-IC-M3 chip")
+			if ("mail@goldstein.ug")
+				comps = pick("GBSA-1994 chip","McGT S5R1 chip","RDKV S-445 chip")
+			if ("mail@blu.ug")
+				comps = pick("McGT S5R1 chip","RDKV S-445 chip","GS-IC-M3 chip")
+		var/pay = nr*rand(500,700)
+		var/list/tlist = list(list(tloc[2],tloc[3],comps,nr,pay,i)) //x,y,product,amount,payment,faction
+		delivery_orders += tlist
+		var/needed = "[nr] [comps]s at the [tloc[4]] [tloc[1]] postbox ([tloc[2]],[tloc[3]])"
+		var/datum/email/E = new/datum/email
+		pay/=4 //convert to dollars
+		E.subject = pick("New Order","Delivery Requested","Need Some More","Ordering","URGENT: Order")
+		E.sender = "[lowertext(pick(first_names_male))][rand(1,99)]@monkeysoft.ug"
+		E.receiver = i
+		E.message = pick(
+			"Hey man, send [needed], really need it. Is [pay] ok? Will be expecting.<br>kudos from [uppertext(E.sender[1])].",
+			"Hope you guys are ok. Need [needed]. ASAP. Will pay [pay]$ for all of it. Yours trully",
+			"Hey, need a delivery of [needed] for [pay], thanks.",
+			"I heard you can get your hands on something i need. I'll pay you [pay]. Send me [needed].<br>Thanks",
+			"Send [needed]. Pay is [pay]$. Discretion as always.<br>-[uppertext(E.sender[1])]",
+			)
+		E.date = roundduration2text()
+		E.read = FALSE
+		map.emails[i] += list(E)
+	spawn(rand(5000,7000))
+		send_buy_orders()
+		return
+
 /obj/map_metadata/art_of_the_deal/job_enabled_specialcheck(var/datum/job/J)
 	if (J.is_deal)
 		. = TRUE
@@ -66,26 +135,38 @@
 /obj/map_metadata/art_of_the_deal/cross_message(faction)
 	if (faction == CIVILIAN)
 		return "<font size = 4><b>The round has started!</b> Players may now cross the invisible wall!</font>"
+/obj/map_metadata/the_art_of_the_deal/proc/load_new_recipes() //bow ungas BTFO
+	var/F3 = file("config/material_recipes_camp.txt")
+	if (fexists(F3))
+		craftlist_list = list()
+		var/list/craftlist_temp = file2list(F3,"\n")
+		for (var/i in craftlist_temp)
+			if (findtext(i, ","))
+				var/tmpi = replacetext(i, "RECIPE: ", "")
+				var/list/current = splittext(tmpi, ",")
+				craftlist_list += list(current)
+				if (current.len != 13)
+					world.log << "Error! Recipe [current[2]] has a length of [current.len] (should be 13)."
 
 /obj/map_metadata/art_of_the_deal/proc/spawn_disks(repeat = FALSE)
 	for(var/obj/structure/closet/safe/SF in world)
 		if (SF.faction)
 			switch(SF.faction)
-				if ("Reddington Arms")
+				if ("Rednikov Industries")
 					if (SF.opened)
 						new/obj/item/weapon/disk/red(SF.loc)
 						new/obj/item/weapon/disk/red/fake(SF.loc)
 					else
 						new/obj/item/weapon/disk/red(SF)
 						new/obj/item/weapon/disk/red/fake(SF)
-				if ("Bluford Stock and Bonds")
+				if ("Giovanni Blu Stocks")
 					if (SF.opened)
 						new/obj/item/weapon/disk/blue(SF.loc)
 						new/obj/item/weapon/disk/blue/fake(SF.loc)
 					else
 						new/obj/item/weapon/disk/red(SF)
 						new/obj/item/weapon/disk/red/fake(SF)
-				if ("Greene Traders Co-ops")
+				if ("MacGreene Traders")
 					if (SF.opened)
 						new/obj/item/weapon/disk/green(SF.loc)
 						new/obj/item/weapon/disk/green/fake(SF.loc)
@@ -104,6 +185,54 @@
 			spawn_disks(repeat)
 	world << "<font size=2 color ='yellow'>New disks have arrived at the vaults!</font>"
 
+/obj/map_metadata/art_of_the_deal/proc/refill_marketplace(repeat = FALSE)
+	if (precursor_stocks.len >= 4)
+		precursor_stocks["galdonium crystals"][1] += 2
+		precursor_stocks["galdonium crystals"][2] = min(60,round(precursor_stocks["galdonium crystals"][2]*0.9))
+		precursor_stocks["indigon crystals"][1] += 2
+		precursor_stocks["indigon crystals"][2] = min(60,round(precursor_stocks["indigon crystals"][2]*0.9))
+		precursor_stocks["verdine crystals"][1] += 2
+		precursor_stocks["verdine crystals"][2] = min(60,round(precursor_stocks["verdine crystals"][2]*0.9))
+		precursor_stocks["crimsonite crystals"][1] += 2
+		precursor_stocks["crimsonite crystals"][2] = min(60,round(precursor_stocks["crimsonite crystals"][2]*0.9))
+	if (prob(100))
+		var/idx = rand(1,999999)
+		var/list/chosen = list()
+		chosen = list(list(/obj/item/weapon/gun/projectile/boltaction/gewehr98/karabiner98k,rand(1200,1500)),list(/obj/item/weapon/gun/projectile/boltaction/mosin/m30,rand(1200,1500)),list(/obj/item/weapon/gun/projectile/shotgun/pump,rand(1400,1700)),list(/obj/item/weapon/gun/projectile/pistol/waltherp38,rand(300,500)))
+		var/chosen1 = pick(chosen)
+		if (ispath(chosen1[1]))
+			var/pt = chosen1[1]
+			var/obj/item/weapon/gun/projectile/ST = new pt(locate(1,1,1))
+			ST.serial = ""
+			map.globalmarketplace += list("[idx]" = list("Anonymous",ST,1,chosen1[2],"deepnet","[idx]",1))
+			ST.forceMove(locate(0,0,0))
+	var/num = rand(1,2) //equipment
+	for(var/i, i<=num, i++)
+		var/idx = rand(1,999999)
+		var/list/chosen = list()
+		chosen = list(list(/obj/item/weapon/reagent_containers/pill/cocaine,rand(150,250)),list(/obj/item/weapon/disk/program/squadtracker,rand(250,350)),list(/obj/item/weapon/attachment/scope/adjustable/sniper_scope,rand(150,200)),list(/obj/item/weapon/attachment/silencer/pistol,rand(180,250)),list(/obj/item/weapon/plastique/c4,rand(750,950)),list(/obj/item/clothing/glasses/nvg,rand(140,180)),list(/obj/item/clothing/accessory/armor/nomads/civiliankevlar,rand(400,500)))
+		var/chosen1 = pick(chosen)
+		if (ispath(chosen1[1]))
+			var/pt = chosen1[1]
+			var/obj/item/ST = new pt(locate(1,1,1))
+			map.globalmarketplace += list("[idx]" = list("Anonymous",ST,1,chosen1[2],"deepnet","[idx]",1))
+			ST.forceMove(locate(0,0,0))
+
+	num = rand(2,3) //ammo
+	for(var/i, i<=num, i++)
+		var/idx = rand(1,999999)
+		var/list/chosen = list()
+		chosen = list(list(/obj/item/ammo_magazine/gewehr98,rand(100,120)),list(/obj/item/ammo_magazine/mosin,rand(100,120)),list(/obj/item/ammo_magazine/shellbox,rand(120,180)),list(/obj/item/ammo_magazine/walther,rand(60,90)))
+		var/chosen1 = pick(chosen)
+		if (ispath(chosen1[1]))
+			var/pt = chosen1[1]
+			var/obj/item/ST = new pt(locate(1,1,1))
+			map.globalmarketplace += list("[idx]" = list("Anonymous",ST,1,chosen1[2],"deepnet","[idx]",1))
+			ST.forceMove(locate(0,0,0))
+
+	if (repeat)
+		spawn(rand(12000,14000))
+			refill_marketplace(repeat)
 /obj/map_metadata/art_of_the_deal/proc/score()
 	world << "<b><font color='yellow' size=3>Scores:</font></b>"
 	for(var/obj/structure/closet/safe/SF in world)
@@ -121,7 +250,7 @@
 			world << "<big><font color='yellow' size=2>[tlist[1]]: [tlist[2]] points</font></big>"
 //five-o scores
 	var/list/tlist2 = list("Police",0)
-	for(var/obj/item/I in get_area(/area/caribbean/prison))
+	for(var/obj/item/I in get_area(/area/caribbean/prison/jail))
 		if (istype(I, /obj/item/weapon/disk))
 			var/obj/item/weapon/disk/D = I
 			if (D.faction && !D.used)
@@ -153,12 +282,37 @@
 		/obj/item/clothing/suit/storage/ghillie = 1,
 		/obj/item/flashlight/flashlight = 10,
 		/obj/item/ammo_magazine/emptyspeedloader = 20,
-//		/obj/item/clothing/suit/storage/jacket/charcoal_suit = 10,
-//		/obj/item/clothing/suit/storage/jacket/black_suit = 10,
-//		/obj/item/clothing/suit/storage/jacket/navy_suit = 10,
-//		/obj/item/clothing/suit/storage/jacket/burgundy_suit = 10,
-//		/obj/item/clothing/suit/storage/jacket/checkered_suit = 10,
+		/obj/item/weapon/handcuffs/rope = 50,
 	)
+/obj/structure/vending/undercover_apparel
+	name = "undercover apparel"
+	desc = "All the equipment needed for undercover missions."
+	icon_state = "apparel_german2"
+	products = list(
+		/obj/item/clothing/suit/storage/jacket/charcoal_suit = 10,
+		/obj/item/clothing/suit/storage/jacket/black_suit = 10,
+		/obj/item/clothing/suit/storage/jacket/navy_suit = 10,
+		/obj/item/clothing/shoes/laceup = 10,
+		/obj/item/clothing/glasses/sunglasses = 10,
+		/obj/item/clothing/under/expensive/red = 10,
+		/obj/item/clothing/accessory/armband/british = 10,
+		/obj/item/clothing/under/expensive/yellow = 10,
+		/obj/item/clothing/accessory/armband/spanish = 10,
+		/obj/item/clothing/under/expensive/green = 10,
+		/obj/item/clothing/accessory/armband/portuguese = 10,
+		/obj/item/clothing/under/expensive/blue = 10,
+		/obj/item/clothing/accessory/armband/french = 10,
+		/obj/item/weapon/storage/backpack/duffel = 10,
+		/obj/item/weapon/storage/briefcase = 10,
+		/obj/item/clothing/accessory/holster/armpit = 10,
+		/obj/item/clothing/accessory/holster/chest = 10,
+	)
+	attack_hand(mob/user as mob)
+		if (user.original_job_title == "Police Officer")
+			..()
+		else
+		 user << "You do not have access to this."
+		 return
 
 /obj/structure/vending/sales/business_weapons
 	name = "weapon and ammo rack"
@@ -169,21 +323,12 @@
 		/obj/item/weapon/gun/projectile/pistol/colthammerless/m1908 = 5,
 		/obj/item/weapon/gun/projectile/pistol/m1911 = 5,
 		/obj/item/weapon/gun/projectile/revolver/smithwesson = 10,
-//		/obj/item/weapon/gun/projectile/shotgun/pump = 2,
-//		/obj/item/weapon/gun/projectile/boltaction/m24 = 2,
 		/obj/item/weapon/attachment/silencer/pistol = 5,
 
-		/obj/item/weapon/plastique/c4 = 2,
 		/obj/item/ammo_magazine/colthammerless = 20,
 		/obj/item/ammo_magazine/colthammerless/a380acp = 20,
 		/obj/item/ammo_magazine/m1911 = 20,
 		/obj/item/ammo_magazine/c32 = 10,
-//		/obj/item/ammo_magazine/shellbox = 10,
-//		/obj/item/ammo_magazine/shellbox/slug = 10,
-//		/obj/item/ammo_magazine/m24 = 10,
-
-		/obj/item/clothing/glasses/nvg = 2,
-		/obj/item/clothing/accessory/armor/nomads/civiliankevlar = 4,
 	)
 	prices = list(
 		/obj/item/weapon/gun/projectile/pistol/colthammerless = 300,
@@ -194,7 +339,6 @@
 		/obj/item/weapon/gun/projectile/boltaction/m24 = 600,
 		/obj/item/weapon/attachment/silencer/pistol = 120,
 
-		/obj/item/weapon/plastique/c4 = 800,
 		/obj/item/ammo_magazine/colthammerless = 40,
 		/obj/item/ammo_magazine/colthammerless/a380acp = 40,
 		/obj/item/ammo_magazine/m1911 = 40,
@@ -202,10 +346,19 @@
 		/obj/item/ammo_magazine/shellbox = 80,
 		/obj/item/ammo_magazine/shellbox/slug = 80,
 		/obj/item/ammo_magazine/m24 = 80,
-
-		/obj/item/clothing/glasses/nvg = 100,
-		/obj/item/clothing/accessory/armor/nomads/civiliankevlar = 400,
 	)
+	attack_hand(mob/living/human/user as mob)
+		if (user.gun_permit)
+			..()
+		else
+		 user << "You do not have a valid gun permit. Get one first from your local police station."
+		 return
+	attackby(obj/item/I, mob/living/human/user)
+		if (user.gun_permit)
+			..()
+		else
+		 user << "You do not have a valid gun permit. Get one first from your local police station."
+		 return
 /obj/structure/vending/police_equipment
 	name = "police equipment"
 	desc = "All the equipment to keep your officers in top shape."
@@ -232,6 +385,7 @@
 		else
 		 user << "You do not have access to this."
 		 return
+
 /obj/structure/vending/police_weapons
 	name = "police weapons"
 	desc = "When the baton is not enough."
@@ -253,124 +407,6 @@
 		else
 		 user << "You do not have access to this."
 		 return
-/obj/item/weapon/disk
-	name = "diskette"
-	desc = "Some kind of diskette."
-	icon = 'icons/obj/bureaucracy.dmi'
-	icon_state = "disk_red"
-	item_state = "disk_red"
-	flammable = FALSE
-	density = FALSE
-	opacity = FALSE
-	force = 4.0
-	throwforce = 3.0
-	attack_verb = list("bashed", "bludgeoned", "whacked")
-	sharp = FALSE
-	edge = FALSE
-	w_class = 1.0
-
-	var/fake = FALSE
-	var/used = FALSE
-	var/faction = null
-	var/exchange_state = -1 //0-both fake, 1-one is real, 2-both real
-
-/obj/item/weapon/disk/examine(mob/user)
-	..()
-	if (used)
-		user << "<font color='yellow'><i><b>The disk was already decrypted and wiped</b></i></font>."
-	if (exchange_state == -1)
-		user << "The disk is <b><font color='red'>inactive</font></b>."
-	else
-		user << "The disk is <b><font color='green'>active</font></b>."
-	if (ishuman(user))
-		var/mob/living/human/H = user
-		if (H.civilization == faction)
-			H << "This is a <b>[fake ? "<font color ='red'>fake</font>" : "<font color ='green'>real</font>"]</b> disk."
-	else if (isghost(user))
-		user << "This is a <b>[fake ? "<font color ='red'>fake</font>" : "<font color ='green'>real</font>"]</b> disk."
-
-/obj/item/weapon/disk/attackby(var/obj/item/weapon/disk/D, var/mob/living/human/H)
-	if (istype(D, /obj/item/weapon/disk))
-		H.setClickCooldown(20)
-		if (src.faction == D.faction)
-			H << "These disks are of the same faction, you need another faction's disk to activate them."
-			return
-		else if (src.used)
-			H << "\The [src] has already been used and wiped."
-			return
-		else if (D.used)
-			H << "\The [src] has already been used and wiped."
-			return
-		else if (src.exchange_state != -1 && D.exchange_state != -1)
-			visible_message("<big><font color='red'>Both disks are already active.</font></big>")
-			return
-		else if (src.exchange_state != -1)
-			visible_message("<big><font color='yellow'>\The [src] has already been activated.</font></big>")
-			return
-		else if (D.exchange_state != -1)
-			visible_message("<big><font color='yellow'>\The [D] has already been activated.</font></big>")
-			return
-
-		if (D.fake && src.fake) //both fake
-			D.exchange_state = 0
-			src.exchange_state = 0
-			visible_message("<big><font color='green'>Both disks get activated, completing the transaction.</font></big>")
-			return
-		else if ((D.fake && !src.fake) || (!D.fake && src.fake)) //one is fake
-			D.exchange_state = 1
-			src.exchange_state = 1
-			visible_message("<big><font color='green'>Both disks get activated, completing the transaction.</font></big>")
-			return
-		else if (!D.fake && !src.fake) //both real
-			D.exchange_state = 2
-			src.exchange_state = 2
-			visible_message("<big><font color='green'>Both disks get activated, completing the transaction.</font></big>")
-			return
-	else
-		..()
-/obj/item/weapon/disk/red
-	name = "red diskette"
-	icon_state = "disk_red"
-	item_state = "disk_red"
-	faction = "Reddington Arms"
-
-/obj/item/weapon/disk/red/fake
-	name = "red diskette"
-	faction = "Reddington Arms"
-	fake = TRUE
-
-/obj/item/weapon/disk/blue
-	name = "blue diskette"
-	icon_state = "disk_blue"
-	item_state = "disk_blue"
-	faction = "Bluford Stock and Bonds"
-
-/obj/item/weapon/disk/blue/fake
-	name = "blue diskette"
-	faction = "Bluford Stock and Bonds"
-	fake = TRUE
-
-/obj/item/weapon/disk/yellow
-	name = "yellow diskette"
-	icon_state = "disk_yellow"
-	item_state = "disk_yellow"
-	faction = "Goldstein Solutions"
-
-/obj/item/weapon/disk/yellow/fake
-	name = "yellow diskette"
-	faction = "Goldstein Solutions"
-	fake = TRUE
-
-/obj/item/weapon/disk/green
-	name = "green diskette"
-	icon_state = "disk_green"
-	item_state = "disk_green"
-	faction = "Greene Traders Co-ops"
-
-/obj/item/weapon/disk/green/fake
-	name = "green diskette"
-	faction = "Greene Traders Co-ops"
-	fake = TRUE
 
 /obj/item/weapon/package
 	name = "package"
@@ -396,28 +432,38 @@
 	icon_state = "police_record"
 	base_icon = "police_record"
 	name = "Police Record"
+	var/spawntimer = 0
 /obj/item/weapon/paper/police/warrant
 	icon_state = "police_record"
 	base_icon = "police_record"
 	name = "Arrest Warrant"
+	var/reason = "Mischief"
+	var/mob/living/human/tgt_mob = null
 	var/tgt = "Unknown"
 	var/tgtcmp = "Unknown"
+	var/arn = 0
 	New()
 		..()
+		arn = rand(1000,9999)
 		icon_state = "police_record"
 		spawn(10)
-			info = "<center>POLICE DEPARTMENT<hr><large><b>Arrest Warrant No. [rand(1000,9999)]</b></large><hr><br>Police forces are hereby authorized and directed to detain <b>[tgt]</b>, working for <b><i>[tgtcmp]</i></b>. They will disregard any claims of immunity or privilege by the Suspect or agents acting on the Suspect's behalf. Police forces shall bring <b>[tgt]</b> forthwith to the Police Station.<br><br><small><center><i>Form Model 13-B</i><center></small><hr>"
-
+			info = "<center>POLICE DEPARTMENT<hr><large><b>Arrest Warrant No. [arn]</b></large><hr><br>Police forces are hereby authorized and directed to detain <b>[tgt]</b>, working for <b><i>[tgtcmp]</i></b>, for the following reasons:<br><br><i>- [reason]</i><br><br>They will disregard any claims of immunity or privilege by the Suspect or agents acting on the Suspect's behalf. Police forces shall bring <b>[tgt]</b> forthwith to the Police Station.<br><br><small><center><i>Form Model 13-B</i><center></small><hr>"
+		spawn(100)
+			if (spawntimer)
+				spawn(spawntimer)
+					qdel(src)
 /obj/item/weapon/paper/police/searchwarrant
 	icon_state = "police_warrant"
 	base_icon = "police_warrant"
 	name = "Search Warrant"
 	var/cmp = "Unknown"
+	var/arn = 0
 	New()
 		..()
+		arn = rand(100,999)
 		icon_state = "police_warrant"
 		spawn(10)
-			info = "<center>POLICE DEPARTMENT<hr><large><b>Search Warrant No. [rand(100,999)]</b></large><hr><br>Police forces are hereby authorized and directed to search all and every property owned by <b>[cmp]</b>. They will disregard any claims of immunity or privilege by the Suspect or agents acting on the Suspect's behalf.<br><br><small><center><i>Form Model 13-C1</i></center></small><hr>"
+			info = "<center>POLICE DEPARTMENT<hr><large><b>Search Warrant No. [arn]</b></large><hr><br>Police forces are hereby authorized and directed to search all and every property owned by <b>[cmp]</b>. They will disregard any claims of immunity or privilege by the Suspect or agents acting on the Suspect's behalf.<br><br><small><center><i>Form Model 13-C1</i></center></small><hr>"
 //////////////////SCREEN HELPERS////////////////////////////
 /obj/screen/areashow_aod
 	maptext = "<center><font color='yellow'>Unknown Area</font></center>"
@@ -440,9 +486,9 @@
 
 	spawn(10)
 		update()
-/mob/proc/get_coded_loc()
+/atom/proc/get_coded_loc()
 	var/a = ceil(x/22)
-	var/b = 10-ceil(y/22)
+	var/b = 10-Floor(y/22)
 	switch(a)
 		if (0 to 1)
 			a = "A"
@@ -465,3 +511,112 @@
 		if (9 to 10)
 			a = "J"
 	return "[a][b]"
+/mob/living/human/var/hidden_name = ""
+
+/mob/living/human/proc/undercover()
+	set category = "IC"
+	set name = "Toggle Undercover"
+	set desc="Hide your identity for police operations."
+
+	if (findtext(name, "Officer"))
+		real_name = replacetext(real_name, "Officer ", "")
+		hidden_name = real_name
+		var/chosen_name = WWinput(src, "Which ethnicity do you want your name to be?","Choose Name","Cancel",list("Cancel","Russian","Jewish","Italian","Irish"))
+		switch(chosen_name)
+			if ("Cancel")
+				return
+			if ("Russian")
+				chosen_name =  species.get_random_russian_name(gender)
+			if ("Irish")
+				chosen_name =  species.get_random_gaelic_name(gender)
+			if ("Italian")
+				chosen_name =  species.get_random_italian_name(gender)
+			if ("Jewish")
+				chosen_name =  species.get_random_hebrew_name(gender)
+		name = chosen_name
+		real_name = chosen_name
+		voice = chosen_name
+		src << "<b><big>You go undercover.</big></b>"
+		return
+	else
+		real_name = "Officer [hidden_name]"
+		name = "Officer [hidden_name]"
+		voice = "Officer [hidden_name]"
+		src << "<b><big>You are now revealing your identity again.</big></b>"
+		return
+
+/obj/item/clothing/accessory/armband/policebadge
+	name = "police badge"
+	desc = "a police badge in star shape, with an officer's name engraved."
+	icon = 'icons/obj/clothing/ties.dmi'
+	icon_state = "sheriff"
+	throwforce = WEAPON_FORCE_HARMLESS
+	throw_speed = TRUE
+	throw_range = 2
+	w_class = 1.0
+	flammable = FALSE
+	slot_flags = SLOT_POCKET|SLOT_BELT
+
+/obj/item/clothing/accessory/armband/policebadge/secondary_attack_self(mob/living/human/user)
+	showoff(user)
+
+/mob/living/human/var/gun_permit = FALSE
+
+/////////////////////////delivery points//////////////////////
+/turf/floor/delivery
+	name = "delivery area"
+	desc = "A collection point for deliveries."
+	icon = 'icons/turf/floors.dmi'
+	icon_state = "sidewalk"
+
+	New()
+		..()
+		spawn(50)
+			new/obj/structure/redmailbox(src)
+
+/obj/structure/redmailbox
+	name = "pillar postbox"
+	desc = "A red pillar postbox."
+	icon = 'icons/obj/mail.dmi'
+	icon_state = "redmailbox"
+	density = TRUE
+	opacity = FALSE
+	anchored = TRUE
+	not_disassemblable = TRUE
+	not_movable = TRUE
+
+/obj/structure/redmailbox/attackby(obj/item/I,mob/living/human/H)
+	if (istype(I,/obj/item/stack/component) && istype(map, /obj/map_metadata/art_of_the_deal))
+		var/obj/item/stack/component/P = I
+		var/obj/map_metadata/art_of_the_deal/map2 = map
+		var/turf/T = get_turf(src)
+		if (istype(T, /turf/floor/delivery))
+			for(var/list/i in map2.delivery_orders)
+				//x,y,product,amount,payment,factionmail
+				var/faction
+				switch(i[6])
+					if ("mail@greene.ug")
+						faction = "MacGreene Traders"
+					if ("mail@rednikov.ug")
+						faction = "Rednikov Industries"
+					if ("mail@goldstein.ug")
+						faction = "Goldstein Solutions"
+					if ("mail@blu.ug")
+						faction = "Giovanni Blu Stocks"
+				if (faction && H.civilization == faction && i[1]==src.x && i[2]==src.y && P.name == i[3] && P.amount >= i[4])
+					P.amount-=i[4]
+					if (P.amount<=0)
+						qdel(P)
+					map2.delivery_orders -= i
+					for(var/obj/structure/closet/safe/SF in world)
+						if (SF.faction == faction)
+							if (SF.opened)
+								var/obj/item/stack/money/dollar/D = new/obj/item/stack/money/dollar(SF.loc)
+								D.amount = i[5]/D.value
+							else
+								var/obj/item/stack/money/dollar/D = new/obj/item/stack/money/dollar(SF)
+								D.amount = i[5]/D.value
+					H << "<big><font color='green'>You fulfill the order. The payment has been sent to your company's safe.</font></big>"
+
+	else
+		..()

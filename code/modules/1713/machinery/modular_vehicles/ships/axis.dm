@@ -9,7 +9,7 @@
 	speeds = 3
 	maxpower = 1200
 	speedlist = list(1=15,2=11,3=7)
-	icon = 'icons/obj/vehicleparts.dmi'
+	icon = 'icons/obj/vehicles/vehicleparts.dmi'
 	icon_state = "axis_powered"
 
 /obj/structure/vehicleparts/axis/ship/heavy
@@ -158,7 +158,7 @@
 						return FALSE
 				if (!done)
 					if (O.density == TRUE && !(O in transporting))
-						if (current_weight >= 400 && !istype(O, /obj/structure/barricade/antitank) && !istype(O, /obj/structure/vehicleparts/frame)&& !istype(O, /obj/structure/vehicleparts/movement))
+						if (current_weight >= 400 && !istype(O, /obj/structure/mailbox) && !istype(O, /obj/structure/barricade/antitank) && !istype(O, /obj/structure/vehicleparts/frame)&& !istype(O, /obj/structure/vehicleparts/movement))
 							visible_message("<span class='warning'>\the [src] crushes \the [O]!</span>","<span class='warning'>You crush \the [O]!</span>")
 							qdel(O)
 						else

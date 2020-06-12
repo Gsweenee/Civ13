@@ -109,85 +109,33 @@
 	icon_state = "1980_computer_off"
 	var/peripherals = list()
 	var/internals = list()
-	var/operatingsystem = "ungaOS"
+	var/operatingsystem = "unga OS"
 	var/memory = list()
-	var/display = "UngaOS V 0.0.1<br>"
+	var/display = "Unga OS V 0.0.1"
 	flammable = FALSE
 	not_movable = FALSE
 	not_disassemblable = TRUE
 	var/active = FALSE
 	powered = FALSE
 	powerneeded = 1
+	var/mainbody = ""
+	var/mainmenu = ""
+	var/mob/user
+
+	var/list/programs = list()
+/obj/structure/computer/New()
+	..()
+	boot(operatingsystem)
+	program_checker()
 
 /obj/structure/computer/nopower
-	name = "Desktop Computer"
-	desc = "A desktop computer running the latest version of UngaOS."
+	name = "desktop computer"
+	desc = "A desktop computer running the latest version of Unga OS."
+	icon_state = "1980_computer_on"
 	powered = TRUE
 	powerneeded = FALSE
 	anchored = TRUE
 
-/obj/structure/computer/nopower/aotd
-	name = "Desktop Computer"
-	desc = "A desktop computer running the latest version of UngaOS. Has a floppy drive."
-	powered = TRUE
-	powerneeded = FALSE
-	anchored = TRUE
-/obj/structure/computer/nopower/aotd/attackby(var/obj/item/weapon/disk/D, var/mob/living/human/H)
-	if (istype(D, /obj/item/weapon/disk))
-		if (D.faction == H.civilization)
-			H << "<span class='notice'>You can't read a disk belonging to your company.</span>"
-			return
-		else if (H.civilization == "Police")
-			H << "<span class='notice'>You do not know how to decrypt this... Should put it in the evidence room instead.</span>"
-			return
-		else if (D.used)
-			H << "<span class='notice'>This disk has already been decrypted and wiped.</span>"
-			return
-		else
-			playsound(get_turf(src), 'sound/machines/computer/floppydisk.ogg', 100, TRUE)
-			switch(D.exchange_state)
-				if (-1)
-					if (D.fake)
-						WWalert(H,"This is a fake inactive disk! You lose 100 points.", "Fake Disk")
-						map.scores[H.civilization] -= 100
-						D.used = TRUE
-						qdel(D)
-					else
-						WWalert(H,"This is a real inactive disk! You gain 100 dollars and 100 points.", "Real Disk")
-						map.scores[H.civilization] += 100
-						var/obj/item/stack/money/dollar/DLR = new/obj/item/stack/money/dollar(loc)
-						DLR.amount = 40
-						D.used = TRUE
-						qdel(D)
-				if (0)
-					if (D.fake)
-						WWalert(H,"This is a fake disk! Since you exchanged it with a fake disk too, both factions lose 400 points.", "Fake Disk")
-						map.scores[H.civilization] -= 400
-						D.used = TRUE
-						qdel(D)
-
-				if (1)
-					if (D.fake)
-						WWalert(H,"This is a fake disk! Since you exchanged it with a real disk, you gain nothing and the other faction gains 200 dollars and 200 points.", "Fake Disk")
-						D.used = TRUE
-						qdel(D)
-					else
-						WWalert(H,"This is a real disk! Since you exchanged it with a fake disk, you gain 200 dollars, 200 points and the other faction gains nothing.", "Real Disk")
-						map.scores[H.civilization] += 200
-						var/obj/item/stack/money/dollar/DLR = new/obj/item/stack/money/dollar(loc)
-						DLR.amount = 40
-						D.used = TRUE
-						qdel(D)
-				if (2)
-					if (!D.fake)
-						WWalert(H,"This is a real disk! Since you exchanged it with a real disk too, both factions gain 400 dollars and 400 points.", "Real Disk")
-						map.scores[H.civilization] += 400
-						var/obj/item/stack/money/dollar/DLR = new/obj/item/stack/money/dollar(loc)
-						DLR.amount = 80
-						D.used = TRUE
-						qdel(D)
-	else
-		..()
 /obj/structure/computer/attackby(var/obj/item/W as obj, var/mob/living/human/H as mob)
 	if (istype(W, /obj/item/stack/cable_coil))
 		if (!anchored)
@@ -229,7 +177,36 @@
 		H << "You connect the cable to the [src]."
 
 	else
-		..()
+		if (istype(W, /obj/item/weapon/disk/os))
+			var/obj/item/weapon/disk/os/OSD = W
+			if (OSD.operatingsystem != src.operatingsystem)
+				src.operatingsystem = OSD.operatingsystem
+				src.programs = list()
+				src.boot(OSD.operatingsystem)
+				playsound(get_turf(src), 'sound/machines/computer/floppydisk.ogg', 100, TRUE)
+				H << "You sucessfully install \the [src.operatingsystem] on this machine."
+			else
+				H << "You already have this operating system installed."
+				return
+		else if (istype(W, /obj/item/weapon/disk/program))
+			var/obj/item/weapon/disk/program/PD = W
+			if (!(operatingsystem in PD.compatible_os))
+				H << "This operating system is not supported."
+				return
+			if (PD.included)
+				var/datum/program/NP = new PD.included
+				for(var/datum/program/EP in programs)
+					if (istype(EP,NP))
+						H << "This program is already installed on this machine."
+						return
+				programs += NP
+				NP.origin = src
+				playsound(get_turf(src), 'sound/machines/computer/floppydisk.ogg', 100, TRUE)
+				H << "You load \the [NP.name] into this machine."
+				return
+		else
+			..()
+
 /obj/structure/computer/verb/toggle_power(var/mob/living/human/H)
 	set category = null
 	set name = "Turn On"
@@ -267,7 +244,8 @@
 		return
 /obj/structure/computer/attack_hand(var/mob/living/human/H)
 	if(!src.active)
-		load_os()
+		boot(operatingsystem)
+		do_html(user)
 	else
 		H << "<span class = 'notice'>You need to turn the [src] on first!</span>"
 /obj/structure/computer/proc/power_on()
@@ -283,57 +261,13 @@
 		icon_state = "1980_computer_on"
 	else
 		icon_state = "1980_computer_off"
-/obj/structure/computer/proc/load_os()
-	if(operatingsystem == "ungaOS")
-		var/os = {"
-				<!DOCTYPE html>
-				<html>
-				<head>
-				<title>Unga OS V 0.1</title>
-				<style>
-				body {
-					background-color: #161610
-				}
-				.vertical-center {
-				  margin: 0;
-				  position: absolute;
-				  top: 40%;
-				  -ms-transform: translateY(-50%);
-				  transform: translateY(-50%);
-				  padding-left: 5%
-				}
-				</style>
-				<script type="text/javascript">
-					typeFunction() {
-						if (e.keyCode == 13) {
-							byond://?src=\ref[src]&action=textenter&value=document.getElementById('input').value
-					    }
-						byond://?src=\ref[src]&action=textrecieved&value=document.getElementById('input').value
-					}
-				</head>
-				<div class="vertical-center">
-				<textarea id="display" name="display" rows="25" cols="60" readonly="true" style="resize: none; background-color: black; color: lime; border-style: inset inset inset inset; border-color: #161610; overflow: hidden;">
-				"}
-		os+=display
-		os+={"</textarea>
-				<input type="text" id="input" name="input" style="resize: none; background-color: black; color: lime; border-style: none inset inset inset; border-color: #161610; overflow: hidden;" onkeypress="typeFunction()"></input>
-				</div>
-				</html>
-				"}
-		usr << browse(os,"window=ungaos;border=1;can_close=1;can_resize=0;can_minimize=0;titlebar=1;size=500x500")
 
-/obj/structure/computer/Topic(href, list/href_list)
-	var/action = href_list["action"]
-	if(action == "textrecieved")
-		var/typenoise = pick('sound/machines/computer/key_1.ogg',
-							 'sound/machines/computer/key_2.ogg',
-							 'sound/machines/computer/key_3.ogg',
-							 'sound/machines/computer/key_4.ogg',
-							 'sound/machines/computer/key_5.ogg',
-							 'sound/machines/computer/key_6.ogg',
-							 'sound/machines/computer/key_7.ogg',
-							 'sound/machines/computer/key_8.ogg')
-		playsound(loc, typenoise, 10, TRUE)
-	if(action == "textenter")
-		playsound(loc, 'sound/machines/computer/key_enter.ogg', 10, TRUE)
-		display+=href_list["value"]
+/obj/structure/computer/proc/program_checker()
+	for(var/datum/program/P in programs)
+		P.origin = src
+		if (P.does_checks)
+			P.does_checks_proc()
+	spawn(600)
+		if (src)
+			program_checker()
+			return

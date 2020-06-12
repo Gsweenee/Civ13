@@ -13,16 +13,12 @@
 	title = "Governor"
 	en_meaning = "Colony Leader"
 	rank_abbreviation = "Governor"
-
-
 	spawn_location = "JoinLateCivA"
 	is_officer = TRUE
 	is_commander = TRUE
 	whitelisted = TRUE
-
 	is_governor = TRUE
 	is_1713 = TRUE
-
 
 	min_positions = 1
 	max_positions = 1
@@ -1987,7 +1983,6 @@
 	title = "Businessman"
 	en_meaning = ""
 	rank_abbreviation = ""
-
 	spawn_location = "JoinLateCivA"
 
 	is_deal = TRUE
@@ -2021,6 +2016,8 @@
 		else
 			var/obj/item/clothing/accessory/suspenders/dark/ysuspenders = new /obj/item/clothing/accessory/suspenders/dark(null)
 			uniform.attackby(ysuspenders, H)
+
+	H.equip_to_slot_or_del(new /obj/item/stack/money/dollar/ten(H), slot_r_hand)
 //hats
 	var/randhat = pick(1,2,3)
 	if (randhat == 1)
@@ -2043,15 +2040,24 @@
 		H.client.screen += new/obj/screen/areashow_aod("Area Location","8,14", H, null, "")
 /datum/job/civilian/businessman/yellow
 	title = "Goldstein Solutions"
-	selection_color = "#A1A181"
+	selection_color = "#7e7e06"
 	spawn_location = "JoinLateCivA"
 	min_positions = 3
 	max_positions = 50
 
+/datum/job/civilian/businessman/yellow/CEO
+	title = "Goldstein Solutions CEO"
+	is_officer = TRUE
+	min_positions = 1
+	max_positions = 1
+	rank_abbreviation = "CEO"
+	whitelisted = TRUE
+
 /datum/job/civilian/businessman/yellow/equip(var/mob/living/human/H)
 	if (!H)	return FALSE
-	H.civilization = title
-
+	H.civilization = replacetext(title," CEO", "")
+	H.name = H.species.get_random_hebrew_name(H.gender)
+	H.real_name = H.name
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/expensive/yellow(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/businessyellow(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factionyellow(H), slot_wear_id)
@@ -2063,16 +2069,24 @@
 	return TRUE
 
 /datum/job/civilian/businessman/green
-	title = "Greene Traders Co-ops"
+	title = "MacGreene Traders"
 	selection_color = "#2D632D"
 	spawn_location = "JoinLateCivB"
 	min_positions = 3
 	max_positions = 50
+/datum/job/civilian/businessman/green/CEO
+	title = "MacGreene Traders CEO"
+	is_officer = TRUE
+	min_positions = 1
+	max_positions = 1
+	rank_abbreviation = "CEO"
+	whitelisted = TRUE
 
 /datum/job/civilian/businessman/green/equip(var/mob/living/human/H)
 	if (!H)	return FALSE
-	H.civilization = title
-
+	H.civilization = replacetext(title," CEO", "")
+	H.name = H.species.get_random_gaelic_name(H.gender)
+	H.real_name = H.name
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/expensive/green(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/businessgreen(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factiongreen(H), slot_wear_id)
@@ -2084,16 +2098,25 @@
 	return TRUE
 
 /datum/job/civilian/businessman/blue
-	title = "Bluford Stock and Bonds"
+	title = "Giovanni Blu Stocks"
 	selection_color = "#353575"
 	spawn_location = "JoinLateCivC"
 	min_positions = 3
 	max_positions = 50
 
+/datum/job/civilian/businessman/blue/CEO
+	title = "Giovanni Blu Stocks CEO"
+	is_officer = TRUE
+	min_positions = 1
+	max_positions = 1
+	rank_abbreviation = "CEO"
+	whitelisted = TRUE
+
 /datum/job/civilian/businessman/blue/equip(var/mob/living/human/H)
 	if (!H)	return FALSE
-	H.civilization = title
-
+	H.civilization = replacetext(title," CEO", "")
+	H.name = H.species.get_random_italian_name(H.gender)
+	H.real_name = H.name
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/expensive/blue(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/businessblue(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factionblue(H), slot_wear_id)
@@ -2105,15 +2128,24 @@
 	return TRUE
 
 /datum/job/civilian/businessman/red
-	title = "Reddington Arms"
+	title = "Rednikov Industries"
 	selection_color = "#632D2D"
 	spawn_location = "JoinLateCivD"
 	min_positions = 3
 	max_positions = 50
+/datum/job/civilian/businessman/red/CEO
+	title = "Rednikov Industries CEO"
+	is_officer = TRUE
+	min_positions = 1
+	max_positions = 1
+	rank_abbreviation = "CEO"
+	whitelisted = TRUE
 
 /datum/job/civilian/businessman/red/equip(var/mob/living/human/H)
 	if (!H)	return FALSE
-	H.civilization = title
+	H.civilization = replacetext(title," CEO", "")
+	H.name = H.species.get_random_russian_name(H.gender)
+	H.real_name = H.name
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/expensive/red(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/businessred(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factionred(H), slot_wear_id)
@@ -2131,6 +2163,7 @@
 	whitelisted = TRUE
 	spawn_location = "JoinLateCiv"
 	rank_abbreviation = "Officer"
+	selection_color = "#4845eb"
 
 	is_deal = TRUE
 
@@ -2140,19 +2173,26 @@
 /datum/job/civilian/policeofficer/equip(var/mob/living/human/H)
 	if (!H)	return FALSE
 	H.civilization = "Police"
-
-	H.equip_to_slot_or_del(new /obj/item/clothing/under/constable(H), slot_w_uniform)
+	H.verbs += /mob/living/human/proc/undercover
+	H.equip_to_slot_or_del(new /obj/item/clothing/under/traffic_police(H), slot_w_uniform)
 	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/police(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/map(H), slot_r_store)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factionpolice(H), slot_wear_id)
 	var/obj/item/clothing/under/uniform1 = H.w_uniform
 	var/obj/item/clothing/accessory/holster/hip/hiph = new /obj/item/clothing/accessory/holster/hip(null)
 	uniform1.attackby(hiph, H)
+	var/obj/item/clothing/accessory/armband/policebadge/pb = new /obj/item/clothing/accessory/armband/policebadge(null)
+	spawn(15)
+		pb.name = "[replacetext(H.real_name,"Officer ","")] police badge"
+		pb.desc = "a police badge in star shape, with <b>[replacetext(H.real_name,"Officer ","")]</b> engraved."
+	uniform1.attackby(pb, H)
 	H.equip_to_slot_or_del(new /obj/item/clothing/shoes/swat(H), slot_shoes)
-	H.equip_to_slot_or_del(new /obj/item/clothing/head/helmet/constable(H), slot_head)
+	H.equip_to_slot_or_del(new /obj/item/clothing/head/traffic_police(H), slot_head)
 	H.equip_to_slot_or_del(new /obj/item/weapon/storage/belt/police(H), slot_belt)
 	H.equip_to_slot_or_del(new /obj/item/weapon/gun/projectile/pistol/glock17(H), slot_l_hand)
+	H.equip_to_slot_or_del(new /obj/item/stack/money/dollar/ten(H), slot_r_hand)
 	H.add_note("Role", "You are a member of the police force. Your objectives are to arrest as many businessmen as possible and aprehend money and disks!")
+	H.add_note("Undercover", "If you need to go undercover and conceal your officer status, toggle it under the IC tab.")
 	H.add_note("Police Codes", "As an officer, you can use police codes for fast broadcasting. It will be automatically converted to plaintext. Just use the radio prefix followed by the code, for example, \";10-4\" for affirmative.")
 	H.add_note("List of Police Codes", "<b>10-0:</b> On my way (shows current location)<br><br> \
 		<b>10-1:</b> Report in / share location.<br><br> \
@@ -2183,7 +2223,7 @@
 	rank_abbreviation = "Paramedic"
 	whitelisted = TRUE
 	spawn_location = "JoinLateCivE"
-
+	selection_color = "#777777"
 	is_deal = TRUE
 
 	min_positions = 3
@@ -2193,14 +2233,16 @@
 	if (!H)	return FALSE
 	H.civilization = "Paramedics"
 	H.equip_to_slot_or_del(new /obj/item/clothing/under/modern2(H), slot_w_uniform)
-	H.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/jacket/doctor(H), slot_wear_suit)
+	H.equip_to_slot_or_del(new /obj/item/clothing/suit/storage/jacket/highvis/paramedic(H), slot_wear_suit)
 	H.equip_to_slot_or_del(new /obj/item/weapon/map(H), slot_r_store)
+	H.equip_to_slot_or_del(new /obj/item/weapon/key/civ/paramedics(H), slot_l_store)
 	H.equip_to_slot_or_del(new /obj/item/clothing/mask/sterile(H), slot_wear_mask)
 	H.equip_to_slot_or_del(new /obj/item/weapon/radio/walkietalkie/factionpolice(H), slot_wear_id)
 	H.equip_to_slot_or_del(new /obj/item/clothing/gloves/color/white(H), slot_gloves)
-	H.equip_to_slot_or_del(new /obj/item/clothing/shoes/color/white(H), slot_shoes)
+	H.equip_to_slot_or_del(new /obj/item/clothing/shoes/blackboots1(H), slot_shoes)
 	H.equip_to_slot_or_del(new /obj/item/weapon/storage/firstaid/adv(H), slot_back)
 	H.equip_to_slot_or_del(new /obj/item/weapon/storage/firstaid/combat(H), slot_belt)
+	H.equip_to_slot_or_del(new /obj/item/stack/money/dollar/ten(H), slot_l_hand)
 	H.add_note("Role", "You are a paramedic. Listen to emergency calls and bring injured to the hospital using the ambulance!")
 	H.setStat("strength", STAT_NORMAL)
 	H.setStat("crafting", STAT_NORMAL)

@@ -769,6 +769,8 @@
 		/obj/item/stack/medical/bruise_pack,
 		/obj/item/weapon/whistle,
 		/obj/item/weapon/pen,
+		/obj/item/stack/money,
+		/obj/item/weapon/key,
 		)
 /obj/item/weapon/storage/belt/police/New()
 	..()
@@ -781,3 +783,16 @@
 	new /obj/item/weapon/whistle(src)
 	new /obj/item/ammo_magazine/glock17(src)
 	new /obj/item/ammo_magazine/glock17(src)
+
+/obj/item/clothing/suit/storage/jacket/highvis
+	name = "high visibility jacket"
+	desc = "A yellow high visibility jacket."
+	icon_state = "high_vis_jacket_yellow"
+	item_state = "high_vis_jacket_yellow"
+	worn_state = "high_vis_jacket_yellow"
+
+/obj/item/clothing/suit/storage/jacket/highvis/paramedic
+	name = "paramedic jacket"
+	icon_state = "paramedic_jacket"
+	item_state = "paramedic_jacket"
+	worn_state = "paramedic_jacket"

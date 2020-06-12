@@ -82,19 +82,37 @@ bullet_act
 	if (P.firer && ishuman(P.firer))
 		if (map.ID == MAP_THE_ART_OF_THE_DEAL)
 			var/mob/living/human/Huser = P.firer
-			if (src.stat != DEAD && src.civilization == "Police" && Huser.civilization != "Police")
+			if (src.stat != DEAD && (src.civilization == "Police" || src.civilization == "Paramedics" || prob(5)) && Huser.civilization != "Police")
 				last_harmed = Huser
+				var/reason = "Mischef"
+				if (src.civilization == "Paramedics")
+					reason = "Harming a Paramedic"
+				else if (src.civilization == "Police")
+					reason = "Harming a Police Officer"
+				else
+					reason = "Attempted Murder"
 				if (!(Huser.real_name in map.warrants))
 					map.warrants += Huser.real_name
+					Huser.gun_permit = 0
 					var/obj/item/weapon/paper_bin/police/PAR = null
 					for(var/obj/item/weapon/paper_bin/police/PAR2 in world)
 						PAR = PAR2
 						break
 					if (PAR)
 						var/obj/item/weapon/paper/police/warrant/SW = new /obj/item/weapon/paper/police/warrant(PAR.loc)
+						SW.tgt_mob = Huser
 						SW.tgt = Huser.real_name
 						SW.tgtcmp = Huser.civilization
-						PAR.add(SW)
+						SW.reason = reason
+						SW.spawntimer = 12000
+					var/obj/item/weapon/paper/police/warrant/SW2 = new /obj/item/weapon/paper/police/warrant(null)
+					SW2.tgt_mob = Huser
+					SW2.tgt = Huser.real_name
+					SW2.tgtcmp = Huser.civilization
+					SW2.reason = reason
+					map.pending_warrants += SW2
+					SW2.forceMove(null)
+
 		else if (!map.civilizations && !map.nomads && !map.is_RP)
 			var/mob/living/human/Huser = P.firer
 			if (src.stat != DEAD && src.faction_text != Huser.faction_text)

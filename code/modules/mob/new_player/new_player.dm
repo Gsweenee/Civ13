@@ -38,6 +38,12 @@ var/global/redirect_all_players = null
 			for (var/C in clients)
 				winset(C, null, "mainwindow.flash=1")
 				C << link(redirect_all_players)
+	spawn(20)
+		if (map && map.ID == MAP_THE_ART_OF_THE_DEAL)
+			var/htmlfile = "<!DOCTYPE html><HTML><HEAD><TITLE>Wiki Guide</TITLE><META http-equiv=\"X-UA-Compatible\" content=\"IE=edge\"></HEAD> \
+			<BODY><iframe src=\"http://civ13.com/wiki/index.php/The_Art_of_the_Deal\"  style=\"position: absolute; height: 97%; width: 97%; border: none\"></iframe></BODY></HTML>"
+			src << browse(htmlfile,"window=wiki;size=820x650")
+
 /mob/new_player/Destroy()
 	new_player_mob_list -= src
 	..()
@@ -92,9 +98,7 @@ var/global/redirect_all_players = null
 	<br>
 	<html>
 	<head>
-	<style>
 	[common_browser_style]
-	</style>
 	</head>
 	<body><center>
 	PLACEHOLDER
@@ -486,7 +490,6 @@ var/global/redirect_all_players = null
 	return FALSE
 
 /mob/new_player/proc/AttemptLateSpawn(rank, var/nomsg = FALSE)
-
 	if (src != usr)
 		return FALSE
 	if (!ticker || ticker.current_state != GAME_STATE_PLAYING)
@@ -857,23 +860,23 @@ var/global/redirect_all_players = null
 						side_name = "Israeli"
 					dat += "<br><br>[side_name]<br>"
 
-			var/extra_span = ""
-			var/end_extra_span = ""
+			var/extra_span = "<b>"
+			var/end_extra_span = "</b><br>"
 
 			if (job.is_officer && !job.is_commander)
-				extra_span = "<h3>"
-				end_extra_span = "</h3>"
+				extra_span = "<b><font size=2>"
+				end_extra_span = "</font></b><br>"
 			else if (job.is_commander)
-				extra_span = "<h2>"
-				end_extra_span = "</h2>"
+				extra_span = "<font size=3>"
+				end_extra_span = "</font></b><br><br>"
 
 			if (!job.en_meaning)
 				if (job_is_available)
-					dat += "&[job.base_type_flag()]&[extra_span]<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]/[job.total_positions]) (Active: [active])</a>[end_extra_span]"
+					dat += "&[job.base_type_flag()]&[extra_span]<a style=\"background-color:[job.selection_color];\" href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.current_positions]/[job.total_positions]) (Active: [active])</a>[end_extra_span]"
 					++available_jobs_per_side[job.base_type_flag()]
 			else
 				if (job_is_available)
-					dat += "&[job.base_type_flag()]&[extra_span]<a href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.en_meaning]) ([job.current_positions]/[job.total_positions]) (Active: [active])</a>[end_extra_span]"
+					dat += "&[job.base_type_flag()]&[extra_span]<a style=\"background-color:[job.selection_color];\" href='byond://?src=\ref[src];SelectedJob=[job.title]'>[job.title] ([job.en_meaning]) ([job.current_positions]/[job.total_positions]) (Active: [active])</a>[end_extra_span]"
 					++available_jobs_per_side[job.base_type_flag()]
 
 
@@ -917,9 +920,7 @@ var/global/redirect_all_players = null
 		<br>
 		<html>
 		<head>
-		<style>
 		[common_browser_style]
-		</style>
 		</head>
 		<body>
 		[data]
@@ -1012,19 +1013,6 @@ var/global/redirect_all_players = null
 /mob/new_player/proc/is_species_whitelisted(datum/species/S)
 	return FALSE
 
-/mob/new_player/get_species()
-	var/datum/species/chosen_species
-	if (client.prefs.species)
-		chosen_species = all_species[client.prefs.species]
-
-	if (!chosen_species)
-		return "Human"
-
-	if (is_species_whitelisted(chosen_species) || has_admin_rights())
-		return chosen_species.name
-
-	return "Human"
-
 /mob/new_player/get_gender()
 	if (!client || !client.prefs)
 		return ..()
@@ -1035,7 +1023,6 @@ var/global/redirect_all_players = null
 
 /mob/new_player/hear_say(var/message, var/verb = "says", var/datum/language/language = null, var/alt_name = "",var/italics = FALSE, var/mob/speaker = null)
 	return
-
 
 /mob/new_player/MayRespawn()
 	return TRUE

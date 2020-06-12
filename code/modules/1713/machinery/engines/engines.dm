@@ -112,8 +112,12 @@
 /obj/structure/engine/proc/running_sound()
 	if (on)
 		playsound(loc, running_snd, 35, FALSE, 2)
-	spawn(27)
-		running_sound()
+	if (running_snd == 'sound/machines/steam_loop.ogg')
+		spawn(23)
+			running_sound()
+	else
+		spawn(27)
+			running_sound()
 
 
 /obj/structure/engine/attack_hand(mob/user as mob)
@@ -135,6 +139,20 @@
 
 /obj/structure/engine/update_icon()
 	..()
+	if (engineclass == "carengine")
+		switch(dir)
+			if (NORTH)
+				pixel_x = 16
+				pixel_y = 0
+			if (SOUTH)
+				pixel_x = -16
+				pixel_y = 0
+			if (WEST)
+				pixel_x = 0
+				pixel_y = 16
+			if (EAST)
+				pixel_x = 0
+				pixel_y = -16
 	if (broken)
 		icon_state = "engine_broken"
 		return

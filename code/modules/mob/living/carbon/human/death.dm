@@ -77,8 +77,13 @@
 							if (PAR)
 								var/obj/item/weapon/paper/police/searchwarrant/SW = new /obj/item/weapon/paper/police/searchwarrant(PAR.loc)
 								SW.cmp = warrant
-								PAR.add(SW)
+								SW.spawntimer = 18000
 							global_broadcast(FREQP,"<big>Attention, warrant issued for <b>[warrant] HQ</b>, please search the premises as soon as possible.</big>")
+							map.warrants += warrant
+							spawn(30)
+								for(var/mob/living/human/HMN in player_list)
+									if (HMN.civilization == warrant)
+										HMN.gun_permit = FALSE
 			else
 				map.scores[civilization] -= 200
 	handle_piss()

@@ -7,6 +7,7 @@ var/global/list/tank_names_usa = list("Charlie", "Alpha", "Foxtrot", "Tango", "E
 /obj/structure/vehicleparts/axis
 	var/maxdist = 5 //the highest of length and width
 	var/turntimer = 15
+	var/doorcode = 0
 /obj/structure/vehicleparts/axis/ex_act(severity)
 	switch(severity)
 		if (1.0)
@@ -173,7 +174,7 @@ var/global/list/tank_names_usa = list("Charlie", "Alpha", "Foxtrot", "Tango", "E
 						return FALSE
 				if (!done)
 					if (O.density == TRUE && !(O in transporting))
-						if (current_weight >= 400 && !istype(O, /obj/structure/barricade/antitank) && !istype(O, /obj/structure/vehicleparts/frame)&& !istype(O, /obj/structure/vehicleparts/movement))
+						if (current_weight >= 400 && !istype(O, /obj/structure/mailbox) && !istype(O, /obj/structure/barricade/antitank) && !istype(O, /obj/structure/vehicleparts/frame)&& !istype(O, /obj/structure/vehicleparts/movement))
 							visible_message("<span class='warning'>\the [src] crushes \the [O]!</span>","<span class='warning'>You crush \the [O]!</span>")
 							qdel(O)
 						else
@@ -196,7 +197,9 @@ var/global/list/tank_names_usa = list("Charlie", "Alpha", "Foxtrot", "Tango", "E
 						moving = FALSE
 						stopmovementloop()
 						return FALSE
-
+			for(var/obj/item/ammo_casing/AC in T)
+				if(!AC.BB)
+					qdel(AC) //to prevent the "empty empty empty empty"... spam
 			for(var/obj/item/I in TT && !(I in transporting))
 				qdel(I)
 			for(var/obj/effect/fire/BO in T && !(BO in transporting))

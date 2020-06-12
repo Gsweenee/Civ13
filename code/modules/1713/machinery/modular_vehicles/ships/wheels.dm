@@ -1,7 +1,7 @@
 ////////////WIP ship wheel////////////////////
 /obj/structure/vehicleparts/shipwheel
 	name = "ship wheel"
-	icon = 'icons/obj/vehicleparts_boats.dmi'
+	icon = 'icons/obj/vehicles/vehicleparts_boats.dmi'
 	icon_state = "ship_wheel"
 	layer = 2.99
 	var/obj/structure/vehicleparts/axis/ship = null
@@ -22,9 +22,7 @@
 			<html>
 
 			<head>
-			<style>
 			[common_browser_style]
-			</style>
 			</head>
 
 			<body>
@@ -58,9 +56,7 @@
 			<html>
 
 			<head>
-			<style>
 			[common_browser_style]
-			</style>
 			</head>
 
 			<body>
@@ -92,9 +88,7 @@
 			<html>
 
 			<head>
-			<style>
 			[common_browser_style]
-			</style>
 			</head>
 
 			<body>
@@ -128,9 +122,7 @@
 			<html>
 
 			<head>
-			<style>
 			[common_browser_style]
-			</style>
 			</head>
 
 			<body>
