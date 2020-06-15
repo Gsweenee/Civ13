@@ -521,8 +521,8 @@ var/list/name_to_material
 	name = "hardwood"
 	hardness = 200
 	integrity = 175
+	icon_base = "wood"
 	icon_colour = null
-	icon_base = "new_wood"
 
 /material/wood/soft
 	name = "softwood"
